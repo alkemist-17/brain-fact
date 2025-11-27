@@ -4,7 +4,7 @@ A [brainf**k](http://brainfuck.org/) interpreter written in [Go](https://go.dev/
 
 Import the library in your project with 
 ```
-go get github.com/ever-eduardo/brain-fact
+go get github.com/alkemist-17/brain-fact
 ```
 
 
