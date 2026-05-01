@@ -122,7 +122,7 @@ func init() {
 			case opLB:
 				c.stack = append(c.stack, c.offset)
 				c.bytecode = append(c.bytecode, zeroValue, zeroValue)
-				c.offset += uint16ByteSize
+				c.offset += unitSize
 				return generators[loop]
 			case opRB:
 				c.bytecode = append(c.bytecode, opEND)
@@ -143,7 +143,7 @@ func init() {
 				if op == opLB {
 					c.stack = append(c.stack, c.offset)
 					c.bytecode = append(c.bytecode, zeroValue, zeroValue)
-					c.offset += uint16ByteSize
+					c.offset += unitSize
 					if result := generators[loop](c); result == nil {
 						return nil
 					}

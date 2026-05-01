@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"unsafe"
 )
 
 // Global Consts
 const (
-	jump           = 3
 	firstCellIndex = 0
 	zeroValue      = 0
 	offsetInit     = -1
-	uint16ByteSize = 2
-	endLoopOffset  = 3
+	unitSize       = int(unsafe.Sizeof(uint16(0)))
+	endLoopOffset  = unitSize + 1
+	jump           = uint(unitSize + 1)
 )
 
 // Globalconfigurable variables.
