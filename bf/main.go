@@ -10,24 +10,25 @@ import (
 	brainfact "github.com/alkemist-17/brain-fact"
 )
 
-const BFFileExtension string = ".bf"
-const REPLWelcome string = "Welcome to Brainfact 🧠 REPL!"
-const Welcome string = "Brainfact! 🧠"
-const Success string = "Your script was successfully compiled and run."
-const Description string = "A brainfuck interpreter written in Go."
-const Help string = "Type .help for assistance"
+const (
+	BFFileExtension string = ".bf"
+	REPLWelcome     string = "Welcome to the Brainfact 🧠 REPL!"
+	Welcome         string = "Brainfact! 🧠"
+	Success         string = "Your script was successfully compiled and run."
+	Description     string = "A brainfuck interpreter written in Go."
+	Help            string = "Type .help for assistance"
+	scriptIndex            = 1
+)
 
 func main() {
-	clearScreen()
 	if len(os.Args) > 1 {
-		scriptIndex := 1
 		if strings.HasSuffix(os.Args[scriptIndex], BFFileExtension) {
 			if bin, err := os.ReadFile(os.Args[scriptIndex]); err == nil && utf8.Valid(bin) {
 				code := string(bin)
 				if err := brainfact.Run(code); err != nil {
 					fmt.Printf("\n\n\n Error: %s\n\n\n", err)
 				} else {
-					fmt.Printf("\n\n\n   %s\n   %s\n\n\n\n", Welcome, Success)
+					fmt.Println()
 				}
 			} else if err != nil {
 				fmt.Printf("\n\nError reading file '%v'\n%v\n\n\n", os.Args[scriptIndex], err)
@@ -36,6 +37,7 @@ func main() {
 			}
 		}
 	} else {
+		clearScreen()
 		var code string
 		running := true
 		scanner := bufio.NewScanner(os.Stdin)
@@ -53,11 +55,11 @@ func main() {
 				case ".exit":
 					running = false
 				default:
-					println()
+					fmt.Println()
 					if err := brainfact.Run(code); err != nil {
 						fmt.Printf("\n\n\n Error: %s\n\n\n", err)
 					}
-					println()
+					fmt.Printf("\n\n")
 				}
 			}
 		}
