@@ -45,6 +45,7 @@ go build
 | Documentation  	| ✅     	|
 | Release       	| ✅      	|
 | Tests             | ✅         |
+| Config Addr Size  | ✅         |
 | Step Execution    | ❌         |
 | Compiled Files    | ❌         |
 
@@ -58,7 +59,7 @@ According to [The epistle to the Implementors](http://brainfuck.org/epistle.html
 - The supported character set of operators is { '+', ',', '-', '.', '<', '>', '[', ']' }. Any other character is considered a comment.
 - The input must be a valid utf-8 encoded file.
 - The default size of the slice is 32767 cells.
-- The max bytecode size is 65535 bytes.
+- The max bytecode size is configurable to 65535 (default) or 4294967295 bytes.
 - The pointer starts at position 0 of the tape.
 - Output is not necessarily done with a monospace font. It will depend on the local context.
 - I/O operations are done during execution, so all programs are interactive.
