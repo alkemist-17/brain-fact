@@ -8,21 +8,21 @@ import (
 	"os"
 )
 
-// Interpreter constants
+// Global Consts
 const (
-	firstTypeCellAddress = 0
-	zero                 = 0
-	jumpOnBracket        = 5
-	cautiousCheck        = 4
-	initOffset           = -1
-	two                  = 2
-	four                 = 4
+	jump           = 3
+	firstCellIndex = 0
+	zeroValue      = 0
+	offsetInit     = -1
+	uint16ByteSize = 2
+	endLoopOffset  = 3
 )
 
 // Globalconfigurable variables.
 var (
-	TapeSize uint = math.MaxUint32
-	Prompt        = "bf > "
+	TapeSize    uint = math.MaxInt16
+	Prompt           = " > "
+	InputPrompt      = " · "
 )
 
 // interpreter compiles and executes brainfuck code.
@@ -30,7 +30,7 @@ type interpreter struct {
 	code     string
 	compiler *compiler
 	tape     []byte
-	reader   *bufio.Reader
+	scanner  *bufio.Scanner
 }
 
 // Run creates a new interpreter and runs the code passed as argument. It returns nil if no error happened.
@@ -39,7 +39,7 @@ func Run(code string) error {
 		code:     code,
 		compiler: newCompiler(code),
 		tape:     make([]byte, TapeSize),
-		reader:   bufio.NewReader(os.Stdin),
+		scanner:  bufio.NewScanner(os.Stdin),
 	}
 	i.compiler.run()
 	if i.compiler.err != nil {
@@ -53,18 +53,14 @@ func (i *interpreter) run() error {
 	tape := i.tape
 	bytecode := i.compiler.bytecode
 	tapeLimit := uint(len(tape))
-	bcLimit := uint(len(bytecode))
 	var pointer uint
 	var pc uint
 	var op byte
 	for {
-		if pc >= bcLimit {
-			return fmt.Errorf("progam counter out of bounds: %d", pc)
-		}
 		op = bytecode[pc]
 		switch op {
 		case opLeft:
-			if pointer == firstTypeCellAddress {
+			if pointer == firstCellIndex {
 				return fmt.Errorf("tape underflow")
 			}
 			pointer--
@@ -82,27 +78,24 @@ func (i *interpreter) run() error {
 			tape[pointer]--
 			pc++
 		case opLB:
-			if pc+cautiousCheck >= bcLimit {
-				return fmt.Errorf("malformed bytecode: truncated jump address at %d", pc)
-			}
-			if tape[pointer] == zero {
-				pc = uint(binary.BigEndian.Uint32(bytecode[pc+1:]))
-			} else {
-				pc += jumpOnBracket
-			}
-		case opRB:
-			if pc+cautiousCheck >= bcLimit {
-				return fmt.Errorf("malformed bytecode: truncated jump address at %d", pc)
-			}
-			if tape[pointer] != zero {
+			if tape[pointer] == zeroValue {
 				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
 			} else {
-				pc += jumpOnBracket
+				pc += jump
+			}
+		case opRB:
+			if tape[pointer] != zeroValue {
+				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
+			} else {
+				pc += jump
 			}
 		case opComma:
-			b, err := i.reader.ReadByte()
-			if err == nil {
-				tape[pointer] = b
+			fmt.Printf("\n%s", InputPrompt)
+			for i.scanner.Scan() {
+				if b := i.scanner.Bytes(); len(b) > zeroValue {
+					tape[pointer] = b[zeroValue]
+				}
+				break
 			}
 			pc++
 		case opDot:

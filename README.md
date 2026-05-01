@@ -37,7 +37,7 @@ According to [The epistle to the Implementors](http://brainfuck.org/epistle.html
 - When found an EOF, it does not affect anything.
 - The supported character set of operators is { '+', ',', '-', '.', '<', '>', '[', ']' }. Any other character is a comment.
 - The input must be a valid utf-8 encoded file.
-- The default size of the slice is Max Uint32 cells.
+- The default size of the slice is 32767 cells.
 - The pointer starts at position 0 of the slice.
 - Output is not necessarily done with a monospace font. It will depend on the local context.
 - I/O operations are done during execution, so all programs are interactive.
