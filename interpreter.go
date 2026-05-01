@@ -91,11 +91,10 @@ func (i *interpreter) run() error {
 			}
 		case opComma:
 			fmt.Printf("\n%s", InputPrompt)
-			for i.scanner.Scan() {
+			if i.scanner.Scan() {
 				if b := i.scanner.Bytes(); len(b) > zeroValue {
 					tape[pointer] = b[zeroValue]
 				}
-				break
 			}
 			pc++
 		case opDot:
