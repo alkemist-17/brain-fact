@@ -8,9 +8,20 @@ import (
 	"os"
 )
 
+// Interpreter constants
+const (
+	firstTypeCellAddress = 0
+	zero                 = 0
+	jumpOnBracket        = 5
+	cautiousCheck        = 4
+	initOffset           = -1
+	two                  = 2
+	four                 = 4
+)
+
 // Globalconfigurable variables.
 var (
-	TapeSize uint = math.MaxInt16
+	TapeSize uint = math.MaxUint32
 	Prompt        = "bf > "
 )
 
@@ -53,7 +64,7 @@ func (i *interpreter) run() error {
 		op = bytecode[pc]
 		switch op {
 		case opLeft:
-			if pointer == 0 {
+			if pointer == firstTypeCellAddress {
 				return fmt.Errorf("tape underflow")
 			}
 			pointer--
@@ -71,22 +82,22 @@ func (i *interpreter) run() error {
 			tape[pointer]--
 			pc++
 		case opLB:
-			if pc+4 >= bcLimit {
+			if pc+cautiousCheck >= bcLimit {
 				return fmt.Errorf("malformed bytecode: truncated jump address at %d", pc)
 			}
-			if tape[pointer] == 0 {
+			if tape[pointer] == zero {
 				pc = uint(binary.BigEndian.Uint32(bytecode[pc+1:]))
 			} else {
-				pc += 5
+				pc += jumpOnBracket
 			}
 		case opRB:
-			if pc+4 >= bcLimit {
+			if pc+cautiousCheck >= bcLimit {
 				return fmt.Errorf("malformed bytecode: truncated jump address at %d", pc)
 			}
-			if tape[pointer] != 0 {
+			if tape[pointer] != zero {
 				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
 			} else {
-				pc += 5
+				pc += jumpOnBracket
 			}
 		case opComma:
 			b, err := i.reader.ReadByte()

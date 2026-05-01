@@ -16,7 +16,7 @@ const (
 	opDot   = byte('.')
 	opLB    = byte('[')
 	opRB    = byte(']')
-	opEND   = byte(0)
+	opEND   = byte(zero)
 )
 
 // Lexer
@@ -72,9 +72,9 @@ func (c *compiler) run() {
 // creates a new compiler.
 func newCompiler(code string) *compiler {
 	c := &compiler{
-		bytecode:  make([]byte, 0),
+		bytecode:  make([]byte, zero),
 		messenger: make(chan rune),
-		offset:    -1,
+		offset:    initOffset,
 	}
 	c.l = newLexer(code, c.messenger)
 	return c
@@ -102,9 +102,8 @@ func init() {
 			switch op {
 			case opLB:
 				c.stack = append(c.stack, c.offset)
-				c.bytecode = append(c.bytecode, 0)
-				c.bytecode = append(c.bytecode, 0)
-				c.offset += 2
+				c.bytecode = append(c.bytecode, zero, zero)
+				c.offset += two
 				return generators[loop]
 			case opRB:
 				c.bytecode = append(c.bytecode, opEND)
@@ -127,28 +126,28 @@ func init() {
 					c.err = fmt.Errorf("found EOF but at least one [ has not its matching ]")
 					return nil
 				case opRB:
-					if len(c.stack) == 0 {
+					if len(c.stack) == zero {
 						c.bytecode = append(c.bytecode, opEND)
 						c.offset++
 						c.err = fmt.Errorf("found ] with no matching [")
 						return nil
 					}
 					c.bytecode = append(c.bytecode, op)
-					c.bytecode = append(c.bytecode, 0, 0, 0, 0)
-					c.offset += 5
+					c.bytecode = append(c.bytecode, zero, zero, zero, zero)
+					c.offset += jumpOnBracket
 					address := c.stack[len(c.stack)-1]
 					c.stack = c.stack[:len(c.stack)-1]
 					binary.BigEndian.PutUint32(c.bytecode[c.offset-3:], uint32(address))
 					binary.BigEndian.PutUint32(c.bytecode[address+1:], uint32(c.offset+1))
-					if len(c.stack) == 0 {
+					if len(c.stack) == zero {
 						return generators[instr]
 					}
 				case opLB:
 					c.bytecode = append(c.bytecode, op)
 					c.offset++
 					c.stack = append(c.stack, c.offset)
-					c.bytecode = append(c.bytecode, 0, 0, 0, 0)
-					c.offset += 4
+					c.bytecode = append(c.bytecode, zero, zero, zero, zero)
+					c.offset += four
 				default:
 					c.bytecode = append(c.bytecode, op)
 					c.offset++
