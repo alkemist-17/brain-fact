@@ -11,8 +11,8 @@ import (
 )
 
 const BFFileExtension string = ".bf"
-const REPLWelcome string = "Welcome to Brainfact REPL! 🌎"
-const Welcome string = "Brainfact! 🌎"
+const REPLWelcome string = "Welcome to Brainfact 🧠 REPL!"
+const Welcome string = "Brainfact! 🧠"
 const Success string = "Your script was successfully compiled and run."
 const Description string = "A brainfuck interpreter written in Go."
 const Help string = "Type .help for assistance"
@@ -62,7 +62,7 @@ func main() {
 			}
 		}
 		clearScreen()
-		fmt.Printf("\n\n\n   Leaving the Brainfact REPL! 🌎\n\n\n")
+		fmt.Printf("\n\n\n   Leaving the Brainfact REPL! 🧠\n\n\n")
 	}
 }
 
@@ -73,7 +73,7 @@ func clearScreen() {
 
 func printHelp() {
 	clearScreen()
-	fmt.Printf("\n\n\n   Brainfact REPL! 🌎\n\n\n")
+	fmt.Printf("\n\n\n   Brainfact REPL! 🧠\n\n\n")
 	fmt.Printf("   Command list:\n")
 	fmt.Println("   .help  - Show this message")
 	fmt.Println("   .exit  - Quit the REPL")
