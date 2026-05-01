@@ -62,7 +62,7 @@ type compiler struct {
 }
 
 // This function runs the compiler concurrently.
-func (c *compiler) run() {
+func (c *compiler) compile() {
 	go c.l.run()
 	for generator := generators[instr]; generator != nil; generator = generator(c) {
 	}

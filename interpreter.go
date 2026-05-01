@@ -10,10 +10,12 @@ import (
 
 // Global Consts
 const (
-	firstCellIndex = 0
-	zero           = 0
-	U16Bytes       = 2
-	U32Bytes       = 4
+	firstCellIndex  = 0
+	zero            = 0
+	U16Bytes        = 2
+	U32Bytes        = 4
+	FileExt         = ".bf"
+	CompiledFileExt = ".bfc"
 )
 
 // Globalconfigurable variables.
@@ -26,7 +28,6 @@ var (
 
 // interpreter compiles and executes brainfuck code.
 type interpreter struct {
-	code     string
 	compiler *compiler
 	tape     []byte
 	scanner  *bufio.Scanner
@@ -35,22 +36,55 @@ type interpreter struct {
 // Run creates a new interpreter and runs the code passed as argument. It returns nil if no error happened.
 func Run(code string) error {
 	i := &interpreter{
-		code:     code,
 		compiler: newCompiler(code),
 		tape:     make([]byte, TapeSize),
 		scanner:  bufio.NewScanner(os.Stdin),
 	}
-	i.compiler.run()
+	i.compiler.compile()
 	if i.compiler.err != nil {
 		return i.compiler.err
 	}
-	return i.run()
+	return i.run(nil)
+}
+
+// Run compiled brainfuck bytecode
+func RunBytecode(bytecode []byte) error {
+	i := &interpreter{
+		tape:    make([]byte, TapeSize),
+		scanner: bufio.NewScanner(os.Stdin),
+	}
+	return i.run(bytecode)
+}
+
+func Compile(fileName string, code string) error {
+	i := &interpreter{
+		compiler: newCompiler(code),
+	}
+	i.compiler.compile()
+	if i.compiler.err != nil {
+		return i.compiler.err
+	}
+	file, err := os.Create(fileName + CompiledFileExt)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	err = binary.Write(file, binary.BigEndian, i.compiler.bytecode)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // run runs the brainfuck interpreter.
-func (i *interpreter) run() error {
+func (i *interpreter) run(bc []byte) error {
 	tape := i.tape
-	bytecode := i.compiler.bytecode
+	var bytecode []byte
+	if bc != nil {
+		bytecode = bc
+	} else {
+		bytecode = i.compiler.bytecode
+	}
 	tapeLimit := uint(len(tape))
 	var pointer uint
 	var pc uint
