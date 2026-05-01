@@ -46,7 +46,6 @@ go build
 | Release       	| ✅      	|
 | Tests             | ✅         |
 | Config Addr Size  | ✅         |
-| Step Execution    | ❌         |
 | Compiled Files    | ✅         |
 
 
