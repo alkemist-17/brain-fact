@@ -16,7 +16,7 @@ const (
 	opDot   = byte('.')
 	opLB    = byte('[')
 	opRB    = byte(']')
-	opEND   = byte(zeroValue)
+	opEND   = byte(zero)
 )
 
 // Lexer
@@ -58,7 +58,6 @@ type compiler struct {
 	bytecode  []byte    // compiled bytecode.
 	stack     []int     // loops address stack.
 	messenger chan rune // communication channel.
-	offset    int       // bytecode offset.
 	err       error     // compiler error state.
 }
 
@@ -73,16 +72,22 @@ func (c *compiler) run() {
 func (c *compiler) endLoop(op byte) generator {
 	if op == opEND {
 		c.bytecode = append(c.bytecode, op)
-		c.offset++
 		c.err = fmt.Errorf("found EOF but at least one [ has not its matching ]")
 		return nil
 	} else {
 		c.bytecode = append(c.bytecode, op)
-		c.bytecode = append(c.bytecode, zeroValue, zeroValue)
-		c.offset += endLoopOffset
+		for range AddrSize {
+			c.bytecode = append(c.bytecode, zero)
+		}
 		address := c.stack[len(c.stack)-1]
-		binary.BigEndian.PutUint16(c.bytecode[c.offset-1:], uint16(address))
-		binary.BigEndian.PutUint16(c.bytecode[address+1:], uint16(c.offset+1))
+		offset := len(c.bytecode)
+		if AddrSize == U16Bytes {
+			binary.BigEndian.PutUint16(c.bytecode[offset-AddrSize:], uint16(address-1))
+			binary.BigEndian.PutUint16(c.bytecode[address:], uint16(offset))
+		} else {
+			binary.BigEndian.PutUint32(c.bytecode[offset-AddrSize:], uint32(address-1))
+			binary.BigEndian.PutUint32(c.bytecode[address:], uint32(offset))
+		}
 		c.stack = c.stack[:len(c.stack)-1]
 		return generators[instr]
 	}
@@ -91,9 +96,8 @@ func (c *compiler) endLoop(op byte) generator {
 // creates a new compiler.
 func newCompiler(code string) *compiler {
 	c := &compiler{
-		bytecode:  make([]byte, zeroValue),
+		bytecode:  make([]byte, zero),
 		messenger: make(chan rune),
-		offset:    offsetInit,
 	}
 	c.l = newLexer(code, c.messenger)
 	return c
@@ -117,16 +121,15 @@ func init() {
 		instr: func(c *compiler) generator {
 			op := byte(<-c.messenger)
 			c.bytecode = append(c.bytecode, op)
-			c.offset++
 			switch op {
 			case opLB:
-				c.stack = append(c.stack, c.offset)
-				c.bytecode = append(c.bytecode, zeroValue, zeroValue)
-				c.offset += unitSize
+				c.stack = append(c.stack, len(c.bytecode))
+				for range AddrSize {
+					c.bytecode = append(c.bytecode, zero)
+				}
 				return generators[loop]
 			case opRB:
 				c.bytecode = append(c.bytecode, opEND)
-				c.offset++
 				c.err = fmt.Errorf("found ] with not matching [")
 				return nil
 			case opEND:
@@ -139,11 +142,11 @@ func init() {
 			var op byte
 			for op = byte(<-c.messenger); op != opRB && op != opEND; op = byte(<-c.messenger) {
 				c.bytecode = append(c.bytecode, op)
-				c.offset++
 				if op == opLB {
-					c.stack = append(c.stack, c.offset)
-					c.bytecode = append(c.bytecode, zeroValue, zeroValue)
-					c.offset += unitSize
+					c.stack = append(c.stack, len(c.bytecode))
+					for range AddrSize {
+						c.bytecode = append(c.bytecode, zero)
+					}
 					if result := generators[loop](c); result == nil {
 						return nil
 					}

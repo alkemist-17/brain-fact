@@ -6,17 +6,14 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"unsafe"
 )
 
 // Global Consts
 const (
 	firstCellIndex = 0
-	zeroValue      = 0
-	offsetInit     = -1
-	unitSize       = int(unsafe.Sizeof(uint16(0)))
-	endLoopOffset  = unitSize + 1
-	jump           = uint(unitSize + 1)
+	zero           = 0
+	U16Bytes       = 2
+	U32Bytes       = 4
 )
 
 // Globalconfigurable variables.
@@ -24,6 +21,7 @@ var (
 	TapeSize    uint = math.MaxInt16
 	Prompt           = " > "
 	InputPrompt      = " · "
+	AddrSize         = U16Bytes
 )
 
 // interpreter compiles and executes brainfuck code.
@@ -79,22 +77,30 @@ func (i *interpreter) run() error {
 			tape[pointer]--
 			pc++
 		case opLB:
-			if tape[pointer] == zeroValue {
-				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
+			if tape[pointer] == zero {
+				if AddrSize == U16Bytes {
+					pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
+				} else {
+					pc = uint(binary.BigEndian.Uint32(bytecode[pc+1:]))
+				}
 			} else {
-				pc += jump
+				pc += uint(AddrSize) + 1
 			}
 		case opRB:
-			if tape[pointer] != zeroValue {
-				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
+			if tape[pointer] != zero {
+				if AddrSize == U16Bytes {
+					pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
+				} else {
+					pc = uint(binary.BigEndian.Uint32(bytecode[pc+1:]))
+				}
 			} else {
-				pc += jump
+				pc += uint(AddrSize) + 1
 			}
 		case opComma:
 			fmt.Printf("\n%s", InputPrompt)
 			if i.scanner.Scan() {
-				if b := i.scanner.Bytes(); len(b) > zeroValue {
-					tape[pointer] = b[zeroValue]
+				if b := i.scanner.Bytes(); len(b) > zero {
+					tape[pointer] = b[zero]
 				}
 			}
 			pc++
