@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	brainfact "github.com/ever-eduardo/brain-fact"
+	brainfact "github.com/alkemist-17/brain-fact"
 )
 
 const BFFileExtension string = ".bf"

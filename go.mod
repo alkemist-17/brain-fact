@@ -1,3 +1,3 @@
-module github.com/ever-eduardo/brain-fact
+module github.com/alkemist-17/brain-fact
 
-go 1.18
+go 1.26
