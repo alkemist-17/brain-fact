@@ -46,7 +46,7 @@ go build
 | Release       	| ✅      	|
 | Tests             | ✅         |
 | Config Addr Size  | ✅         |
-| Compiled Files    | ✅         |
+| Compile to File   | ✅         |
 
 
 ## Implementation Details.
