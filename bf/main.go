@@ -11,12 +11,13 @@ import (
 )
 
 const (
-	REPLWelcome = "Welcome to the Brainfact 🧠 REPL!"
-	Welcome     = "Brainfact! 🧠"
-	Success     = "Your script was successfully compiled and run."
-	Description = "A brainfuck interpreter written in Go."
-	Help        = "Type .help for assistance"
-	scriptIndex = 1
+	REPLWelcome        = "Welcome to the Brainfact 🧠 REPL!"
+	Welcome            = "Brainfact! 🧠"
+	Success            = "Your script was successfully compiled and run."
+	Description        = "A brainfuck interpreter written in Go."
+	Help               = "Type .help for assistance"
+	scriptIndex        = 1
+	toCompileScriptIdx = scriptIndex + 1
 )
 
 func main() {
@@ -78,7 +79,7 @@ func runScript() {
 			fmt.Printf("\n\nThe file '%v' does not contain a valid utf-8 sequence of bytes\n\n\n", os.Args[scriptIndex])
 		}
 	} else if strings.HasSuffix(os.Args[scriptIndex], brainfact.CompiledFileExt) {
-		if bin, err := os.ReadFile(os.Args[scriptIndex]); err == nil && utf8.Valid(bin) {
+		if bin, err := os.ReadFile(os.Args[scriptIndex]); err == nil {
 			if err := brainfact.RunBytecode(bin); err != nil {
 				fmt.Printf("\n\n\n Error: %s\n\n\n", err)
 			}
@@ -92,16 +93,16 @@ func runScript() {
 
 func compileScript() error {
 	if strings.HasSuffix(os.Args[scriptIndex+1], brainfact.FileExt) {
-		if bin, err := os.ReadFile(os.Args[scriptIndex+1]); err == nil && utf8.Valid(bin) {
+		if bin, err := os.ReadFile(os.Args[toCompileScriptIdx]); err == nil && utf8.Valid(bin) {
 			code := string(bin)
-			filename, _ := strings.CutSuffix(os.Args[scriptIndex+1], brainfact.FileExt)
+			filename, _ := strings.CutSuffix(os.Args[toCompileScriptIdx], brainfact.FileExt)
 			if err := brainfact.Compile(filename, code); err != nil {
 				fmt.Printf("\n\n\n Error: %s\n\n\n", err)
 			}
 		} else if err != nil {
-			fmt.Printf("\n\nError reading file '%v'\n%v\n\n\n", os.Args[scriptIndex+1], err)
+			fmt.Printf("\n\nError reading file '%v'\n%v\n\n\n", os.Args[toCompileScriptIdx], err)
 		} else {
-			fmt.Printf("\n\nThe file '%v' does not contain a valid utf-8 sequence of bytes\n\n\n", os.Args[scriptIndex+1])
+			fmt.Printf("\n\nThe file '%v' does not contain a valid utf-8 sequence of bytes\n\n\n", os.Args[toCompileScriptIdx])
 		}
 	}
 	return nil
