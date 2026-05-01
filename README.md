@@ -47,6 +47,7 @@ go build
 | Tests             | ✅         |
 | Config Addr Size  | ✅         |
 | Compile to File   | ✅         |
+| Run Compiled Code | ✅         |
 
 
 ## Implementation Details.
@@ -77,7 +78,10 @@ Nobody knows when is needed a concurrent safe [brainf**k](http://brainfuck.org/)
 
 
 Check out [this](https://brainfuck.net) interpreter.
-It may work as an interpreter validator for implementators. 
+It may work as an interpreter validator for implementators.
+
+Check out [this](https://github.com/rdebath/Brainfuck/tree/master/testing) programs.
+They may work as test bed for implementators as well.
 
 
 Contributions are welcome!
