@@ -56,9 +56,9 @@ func (l *lexer) run() {
 type compiler struct {
 	l         *lexer    // lexical analyzer.
 	bytecode  []byte    // compiled bytecode.
-	stack     []int     // loops address stack.
+	stack     []int64   // loops address stack.
 	messenger chan rune // communication channel.
-	offset    int       // bytecode offset.
+	offset    int64     // bytecode offset.
 	err       error     // error state of the compiler.
 }
 
@@ -66,26 +66,6 @@ type compiler struct {
 func (c *compiler) run() {
 	go c.l.run()
 	for generator := generators[instr]; generator != nil; generator = generator(c) {
-	}
-}
-
-// This function does some checks after compiling the ] operator.
-func (c *compiler) endLoop(op byte) generator {
-	if op == opEND {
-		c.bytecode = append(c.bytecode, op)
-		c.offset++
-		c.err = fmt.Errorf("found EOF but at least one [ has not its matching ]")
-		return nil
-	} else {
-		c.bytecode = append(c.bytecode, op)
-		c.bytecode = append(c.bytecode, 0)
-		c.bytecode = append(c.bytecode, 0)
-		c.offset += 3
-		address := c.stack[len(c.stack)-1]
-		binary.BigEndian.PutUint16(c.bytecode[c.offset-1:], uint16(address))
-		binary.BigEndian.PutUint16(c.bytecode[address+1:], uint16(c.offset+1))
-		c.stack = c.stack[:len(c.stack)-1]
-		return generators[instr]
 	}
 }
 
@@ -138,21 +118,42 @@ func init() {
 			}
 		},
 		loop: func(c *compiler) generator {
-			var op byte
-			for op = byte(<-c.messenger); op != opRB && op != opEND; op = byte(<-c.messenger) {
-				c.bytecode = append(c.bytecode, op)
-				c.offset++
-				if op == opLB {
-					c.stack = append(c.stack, c.offset)
-					c.bytecode = append(c.bytecode, 0)
-					c.bytecode = append(c.bytecode, 0)
-					c.offset += 2
-					if result := generators[loop](c); result == nil {
+			for {
+				op := byte(<-c.messenger)
+				switch op {
+				case opEND:
+					c.bytecode = append(c.bytecode, op)
+					c.offset++
+					c.err = fmt.Errorf("found EOF but at least one [ has not its matching ]")
+					return nil
+				case opRB:
+					if len(c.stack) == 0 {
+						c.bytecode = append(c.bytecode, opEND)
+						c.offset++
+						c.err = fmt.Errorf("found ] with no matching [")
 						return nil
 					}
+					c.bytecode = append(c.bytecode, op)
+					c.bytecode = append(c.bytecode, 0, 0, 0, 0)
+					c.offset += 5
+					address := c.stack[len(c.stack)-1]
+					c.stack = c.stack[:len(c.stack)-1]
+					binary.BigEndian.PutUint32(c.bytecode[c.offset-3:], uint32(address))
+					binary.BigEndian.PutUint32(c.bytecode[address+1:], uint32(c.offset+1))
+					if len(c.stack) == 0 {
+						return generators[instr]
+					}
+				case opLB:
+					c.bytecode = append(c.bytecode, op)
+					c.offset++
+					c.stack = append(c.stack, c.offset)
+					c.bytecode = append(c.bytecode, 0, 0, 0, 0)
+					c.offset += 4
+				default:
+					c.bytecode = append(c.bytecode, op)
+					c.offset++
 				}
 			}
-			return c.endLoop(op)
 		},
 	}
 }

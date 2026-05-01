@@ -6,14 +6,12 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strconv"
 )
 
 // Globalconfigurable variables.
 var (
-	TapeSize    uint = math.MaxInt16
-	Prompt           = "brain-fact > "
-	innerPrompt      = "(BF Input) [Enter a byte number or 0 to exit]: "
+	TapeSize uint = math.MaxInt16
+	Prompt        = "bf > "
 )
 
 // interpreter compiles and executes brainfuck code.
@@ -21,7 +19,7 @@ type interpreter struct {
 	code     string
 	compiler *compiler
 	tape     []byte
-	scanner  *bufio.Scanner
+	reader   *bufio.Reader
 }
 
 // Run creates a new interpreter and runs the code passed as argument. It returns nil if no error happened.
@@ -30,7 +28,7 @@ func Run(code string) error {
 		code:     code,
 		compiler: newCompiler(code),
 		tape:     make([]byte, TapeSize),
-		scanner:  bufio.NewScanner(os.Stdin),
+		reader:   bufio.NewReader(os.Stdin),
 	}
 	i.compiler.run()
 	if i.compiler.err != nil {
@@ -43,11 +41,15 @@ func Run(code string) error {
 func (i *interpreter) run() error {
 	tape := i.tape
 	bytecode := i.compiler.bytecode
-	limit := uint(len(bytecode))
+	tapeLimit := uint(len(tape))
+	bcLimit := uint(len(bytecode))
 	var pointer uint
 	var pc uint
 	var op byte
 	for {
+		if pc >= bcLimit {
+			return fmt.Errorf("progam counter out of bounds: %d", pc)
+		}
 		op = bytecode[pc]
 		switch op {
 		case opLeft:
@@ -57,7 +59,7 @@ func (i *interpreter) run() error {
 			pointer--
 			pc++
 		case opRight:
-			if pointer == limit-1 {
+			if pointer == tapeLimit-1 {
 				return fmt.Errorf("tape overflow")
 			}
 			pointer++
@@ -69,27 +71,27 @@ func (i *interpreter) run() error {
 			tape[pointer]--
 			pc++
 		case opLB:
+			if pc+4 >= bcLimit {
+				return fmt.Errorf("malformed bytecode: truncated jump address at %d", pc)
+			}
 			if tape[pointer] == 0 {
-				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
+				pc = uint(binary.BigEndian.Uint32(bytecode[pc+1:]))
 			} else {
-				pc += 3
+				pc += 5
 			}
 		case opRB:
+			if pc+4 >= bcLimit {
+				return fmt.Errorf("malformed bytecode: truncated jump address at %d", pc)
+			}
 			if tape[pointer] != 0 {
 				pc = uint(binary.BigEndian.Uint16(bytecode[pc+1:]))
 			} else {
-				pc += 3
+				pc += 5
 			}
 		case opComma:
-			fmt.Printf("\n%s\n", innerPrompt)
-		scanLoop:
-			for i.scanner.Scan() {
-				if result, err := strconv.ParseUint(i.scanner.Text(), 0, 64); err == nil {
-					tape[pointer] = byte(result % 256)
-					break scanLoop
-				} else {
-					break scanLoop
-				}
+			b, err := i.reader.ReadByte()
+			if err == nil {
+				tape[pointer] = b
 			}
 			pc++
 		case opDot:
