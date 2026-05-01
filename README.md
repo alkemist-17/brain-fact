@@ -22,8 +22,15 @@ go build
 ```
 
 
-Or just type ./bf to enter in REPL mode.
+Or run the REPL with
 
+```
+
+cd bf
+go build
+./bf
+
+```
 
 ## Project Milestones.
 | Component      	| Status 	|
@@ -34,8 +41,12 @@ Or just type ./bf to enter in REPL mode.
 | Code Examples  	| ✅      	|
 | Configurations 	| ✅      	|
 | CLI tool       	| ✅      	|
+| REPL       	    | ✅      	|
 | Documentation  	| ✅     	|
 | Release       	| ✅      	|
+| Tests             | ✅         |
+| Step Execution    | ❌         |
+| Compiled Files    | ❌         |
 
 
 ## Implementation Details.
@@ -66,7 +77,7 @@ Nobody knows when is needed a concurrent safe [brainf**k](http://brainfuck.org/)
 
 
 Check out [this](https://brainfuck.net) interpreter.
-It may work as an interpreter validator. 
+It may work as an interpreter validator for implementators. 
 
 
 Contributions are welcome!
