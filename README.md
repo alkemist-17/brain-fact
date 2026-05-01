@@ -10,9 +10,9 @@ go get github.com/alkemist-17/brain-fact
 
 If you want to build the cli and run file scripts then:
 ```
-cd brainfack
+cd bf
 go build
-./brainfack <script-name>.bf
+./bf <script-name>.bf
 ```
 
 
@@ -37,14 +37,14 @@ According to [The epistle to the Implementors](http://brainfuck.org/epistle.html
 - When found an EOF, it does not affect anything.
 - The supported character set of operators is { '+', ',', '-', '.', '<', '>', '[', ']' }. Any other character is a comment.
 - The input must be a valid utf-8 encoded file.
-- The default size of the slice is 32767 cells.
+- The default size of the slice is Max Uint32 cells.
 - The pointer starts at position 0 of the slice.
 - Output is not necessarily done with a monospace font. It will depend on the local context.
 - I/O operations are done during execution, so all programs are interactive.
 - The input operation has a default, yet configurable prompt.
 - The compiler matches [] before execution, and it will report an error with unbalanced [].
 - The interpreter have some configurable features like: prompt, and slice size.
-- The interpreter does not work with negative pointers. (too much? 🤔)
+- The interpreter does not work with negative pointers. (is it too much? 🤔)
 - The interpreter will wrap around individual cells.
 - Peace be with all implementors.
 
@@ -58,7 +58,7 @@ Nobody knows when is needed a concurrent safe [brainf**k](http://brainfuck.org/)
 Contributions are welcome!
 
 
-Happy brain-fact coding! ❤️
+Happy brain-fact coding! I❤️🧠
 
 
 
